@@ -20,9 +20,9 @@ __官方网站__：<https://clipy-app.com>
 
 <img src="http://clipy-app.com/img/screenshot1.png" width="400">
 
-### 开发环境
-* macOS 13.0 或更高版本
-* Xcode 15.2 或更高版本
+### Development Environment
+* macOS 14.0 or later
+* Xcode 15.2 or later
 * Swift 5.9
 
 ### 构建步骤

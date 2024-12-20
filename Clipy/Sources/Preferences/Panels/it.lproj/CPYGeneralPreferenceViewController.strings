@@ -39,7 +39,7 @@
 "nDk-8y-89n.title" = "Impostazioni essenziali";
 
 /* Class = "NSTextFieldCell"; title = "SYSTEM_REQUIREMENTS"; ObjectID = "SYSTEM_REQUIREMENTS"; */
-"SYSTEM_REQUIREMENTS.title" = "Richiede macOS 10.13 o successivo";
+"SYSTEM_REQUIREMENTS.title" = "Richiede macOS 11.0 o successivo";
 
 /* Class = "NSTextFieldCell"; title = "APPLE_SILICON_SUPPORT"; ObjectID = "APPLE_SILICON_SUPPORT"; */
 "APPLE_SILICON_SUPPORT.title" = "Ottimizzato per Apple Silicon";

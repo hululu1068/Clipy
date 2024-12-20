@@ -20,7 +20,7 @@
 "o5Q-Ao-iQN.title" = "Monatlich";
 
 /* Class = "NSTextFieldCell"; title = "SYSTEM_REQUIREMENTS"; ObjectID = "hhl-AS-dQ0"; */
-"hhl-AS-dQ0.title" = "Benötigt macOS 10.13 oder höher";
+"hhl-AS-dQ0.title" = "Benötigt macOS 11.0 oder höher";
 
 /* Class = "NSTextFieldCell"; title = "APPLE_SILICON_SUPPORT"; ObjectID = "hhl-AS-dQ0"; */
 "hhl-AS-dQ0.title" = "Optimiert für Apple Silicon";

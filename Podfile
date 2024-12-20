@@ -1,8 +1,13 @@
-platform :osx, '10.13'
+platform :osx, '11.0'
 use_frameworks!
 
 # Ruby version requirement
 raise "Requires Ruby 2.7 or higher" if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("2.7.0")
+
+# CocoaPods configurations
+install! 'cocoapods',
+  :deterministic_uuids => false,
+  :disable_input_output_paths => true
 
 target 'Clipy' do
 
@@ -38,8 +43,9 @@ target 'Clipy' do
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
         config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '10.13'
-        # Enable ARM64 architecture
-        config.build_settings['EXCLUDED_ARCHS[sdk=macosx*]'] = 'arm64'
+        # Fix for Apple Silicon
+        config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES'
+        config.build_settings['VALID_ARCHS'] = '$(ARCHS_STANDARD)'
       end
     end
   end
