@@ -87,6 +87,8 @@ jobs:
       run: |
         gem install bundler
         gem install cocoapods
+        gem install xcpretty
+        gem install xcpretty-json-formatter
         bundle update --bundler
         bundle config build.nokogiri --use-system-libraries
         pod repo update
@@ -95,6 +97,12 @@ jobs:
     
     - name: Build
       run: |
+        # Ensure xcpretty is available
+        if ! command -v xcpretty &> /dev/null; then
+          echo "xcpretty not found, installing..."
+          gem install xcpretty
+        fi
+        set -o pipefail  # Ensure pipeline errors are propagated
         xcodebuild clean build \
           -workspace Clipy.xcworkspace \
           -scheme Clipy \
@@ -107,11 +115,17 @@ jobs:
           ONLY_ACTIVE_ARCH=NO \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO \
-          | xcpretty --color --simple
+          CODE_SIGNING_ALLOWED=NO 2>&1 | tee xcodebuild.log \
+          | xcpretty --color --simple || cat xcodebuild.log
     
     - name: Run Tests
       run: |
+        # Ensure xcpretty is available
+        if ! command -v xcpretty &> /dev/null; then
+          echo "xcpretty not found, installing..."
+          gem install xcpretty
+        fi
+        set -o pipefail  # Ensure pipeline errors are propagated
         xcodebuild test \
           -workspace Clipy.xcworkspace \
           -scheme Clipy \
@@ -125,8 +139,8 @@ jobs:
           -resultBundlePath TestResults \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO \
-          | xcpretty --color --test --report junit
+          CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log \
+          | xcpretty --color --test --report junit || cat test.log
     
     - name: Process Test Report
       if: always()
@@ -134,20 +148,15 @@ jobs:
         mkdir -p test-results
         mv build/reports/junit.xml test-results/
     
-    - name: Upload Test Report
-      if: always()
-      uses: actions/upload-artifact@v3
-      with:
-        name: test-report
-        path: test-results
-        retention-days: 14
-    
     - name: Upload Test Results
       if: always()
       uses: actions/upload-artifact@v3
       with:
-        name: test-results
-        path: TestResults
+        name: test-artifacts
+        path: |
+          TestResults
+          test-results
+          build/reports/junit.xml
         retention-days: 14
     
     - name: Generate Coverage Report
@@ -174,12 +183,19 @@ jobs:
           exit 1
         fi
     
-    - name: Upload Coverage Results
-      if: success()
+    - name: Upload Build and Test Logs
+      if: always()  # Upload logs regardless of outcome
       uses: actions/upload-artifact@v3
       with:
-        name: code-coverage
-        path: coverage.lcov
+        name: all-logs
+        path: |
+          xcodebuild.log
+          test.log
+          ~/Library/Developer/Xcode/DerivedData/**/Logs/**/*.log
+          **/*.crash
+          **/*.ips
+          **/*.xcresult
+          coverage.lcov
         retention-days: 14
     
     - name: Upload Coverage to Codecov
@@ -191,4 +207,12 @@ jobs:
         verbose: true
         flags: unittests
         name: codecov-umbrella
+    
+    - name: Clean Up
+      if: always()
+      run: |
+        # Clean up DerivedData if not cached
+        if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+          rm -rf ~/Library/Developer/Xcode/DerivedData/*
+        fi
     
