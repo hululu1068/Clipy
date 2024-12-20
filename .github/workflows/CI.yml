@@ -9,7 +9,6 @@ jobs:
       matrix:
         os: [macos-14]
         xcode: ['15.2.0']
-        arch: [x86_64, arm64]
     
     env:
       MD_APPLE_SDK_ROOT: /Applications/Xcode_${{ matrix.xcode }}.app
@@ -65,8 +64,7 @@ jobs:
           -workspace Clipy.xcworkspace \
           -scheme Clipy \
           -configuration Debug \
-          -arch ${{ matrix.arch }} \
-          -destination "platform=macOS,arch=${{ matrix.arch }}" \
+          -destination "platform=macOS" \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
           CODE_SIGNING_ALLOWED=NO
@@ -77,8 +75,7 @@ jobs:
           -workspace Clipy.xcworkspace \
           -scheme Clipy \
           -configuration Debug \
-          -arch ${{ matrix.arch }} \
-          -destination "platform=macOS,arch=${{ matrix.arch }}" \
+          -destination "platform=macOS" \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
           CODE_SIGNING_ALLOWED=NO

@@ -42,10 +42,11 @@ target 'Clipy' do
   post_install do |installer|
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
-        config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '10.13'
-        # Fix for Apple Silicon
-        config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES'
-        config.build_settings['VALID_ARCHS'] = '$(ARCHS_STANDARD)'
+        config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '11.0'
+        # Universal build settings
+        config.build_settings['ONLY_ACTIVE_ARCH'] = 'NO'
+        config.build_settings['ARCHS'] = 'x86_64 arm64'
+        config.build_settings['VALID_ARCHS'] = 'x86_64 arm64'
       end
     end
   end
