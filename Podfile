@@ -33,8 +33,8 @@ target 'Clipy' do
   target 'ClipyTests' do
     inherit! :search_paths
 
-    pod 'Quick'
-    pod 'Nimble'
+    pod 'Quick', '~> 7.0'
+    pod 'Nimble', '~> 12.0'
 
   end
 
@@ -47,6 +47,13 @@ target 'Clipy' do
         config.build_settings['ONLY_ACTIVE_ARCH'] = 'NO'
         config.build_settings['ARCHS'] = 'x86_64 arm64'
         config.build_settings['VALID_ARCHS'] = 'x86_64 arm64'
+        config.build_settings['ENABLE_BITCODE'] = 'NO'
+        config.build_settings['DEAD_CODE_STRIPPING'] = 'YES'
+        # Test framework settings
+        if ['Quick', 'Nimble'].include? target.name
+          config.build_settings['ENABLE_TESTING_SEARCH_PATHS'] = 'YES'
+          config.build_settings['FRAMEWORK_SEARCH_PATHS'] = '$(inherited) "$(PLATFORM_DIR)/Developer/Library/Frameworks"'
+        end
       end
     end
   end

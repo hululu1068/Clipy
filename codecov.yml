@@ -1,0 +1,21 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 70%
+        threshold: 1%
+    patch:
+      default:
+        target: 80%
+        threshold: 1%
+
+ignore:
+  - "Pods/**/*"
+  - "**/*Tests.swift"
+  - "**/*.generated.swift"
+  - "fastlane/**/*"
+
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: true 

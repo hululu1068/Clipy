@@ -1,0 +1,37 @@
+{
+  "configurations" : [
+    {
+      "id" : "B85B0B77-6E89-4F99-9B5D-967F8B16E3D8",
+      "name" : "Default",
+      "options" : {
+        "targetForVariableExpansion" : {
+          "containerPath" : "container:Clipy.xcodeproj",
+          "identifier" : "FAC43DC51B35D8B100C06102",
+          "name" : "Clipy"
+        }
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : {
+      "targets" : [
+        {
+          "containerPath" : "container:Clipy.xcodeproj",
+          "identifier" : "FAC43DC51B35D8B100C06102",
+          "name" : "Clipy"
+        }
+      ]
+    },
+    "testExecutionOrdering" : "random"
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Clipy.xcodeproj",
+        "identifier" : "FAC43DD71B35D8B100C06102",
+        "name" : "ClipyTests"
+      }
+    }
+  ],
+  "version" : 1
+} 

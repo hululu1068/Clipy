@@ -2,24 +2,41 @@ name: CI
 
 on: [push, pull_request]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
+      max-parallel: 1
       matrix:
         os: [macos-14]
         xcode: ['15.2.0']
     
     env:
       MD_APPLE_SDK_ROOT: /Applications/Xcode_${{ matrix.xcode }}.app
+      DISABLE_COVERAGE: '0'
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      XCODE_XCCONFIG_FILE: ${{ github.workspace }}/.github/workflows/config/universal.xcconfig
       LANG: en_US.UTF-8
       LANGUAGE: en_US.UTF-8
       LC_ALL: en_US.UTF-8
       BUNDLE_JOBS: 4
       BUNDLE_RETRY: 3
+      DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
     
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: ${{ matrix.xcode }}
     
     - name: Setup Ruby
       uses: ruby/setup-ruby@v1
@@ -27,11 +44,19 @@ jobs:
         ruby-version: '3.1'
         bundler-cache: true
     
+    - name: Cache DerivedData
+      uses: actions/cache@v3
+      with:
+        path: ~/Library/Developer/Xcode/DerivedData
+        key: ${{ runner.os }}-derivedData-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-derivedData-
+    
     - name: Cache Bundler
       uses: actions/cache@v3
       with:
         path: vendor/bundle
-        key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+        key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/Gemfile') }}
         restore-keys: |
           ${{ runner.os }}-gems-
     
@@ -39,14 +64,24 @@ jobs:
       uses: actions/cache@v3
       with:
         path: Pods
-        key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+        key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}-${{ hashFiles('**/Podfile') }}
         restore-keys: |
           ${{ runner.os }}-pods-
     
-    - name: Setup Xcode
-      uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: ${{ matrix.xcode }}
+    - name: Setup Scheme
+      run: |
+        # Ensure config directory exists
+        mkdir -p .github/workflows/config
+        mkdir -p Clipy.xcworkspace/xcshareddata/xcschemes
+        mkdir -p Clipy.xcworkspace/xcshareddata/xctestplans
+        # Verify xcconfig file exists
+        if [ ! -f "$XCODE_XCCONFIG_FILE" ]; then
+          echo "Error: xcconfig file not found at $XCODE_XCCONFIG_FILE"
+          exit 1
+        fi
+        chmod 644 Clipy.xcworkspace/xcshareddata/xcschemes/Clipy.xcscheme
+        chmod 644 Clipy.xcworkspace/xcshareddata/xctestplans/Clipy.xctestplan
+        chmod 644 "$XCODE_XCCONFIG_FILE"
     
     - name: Install Dependencies
       run: |
@@ -60,18 +95,21 @@ jobs:
     
     - name: Build
       run: |
-        # Clean DerivedData
-        rm -rf ~/Library/Developer/Xcode/DerivedData/*
         xcodebuild clean build \
           -workspace Clipy.xcworkspace \
           -scheme Clipy \
           -configuration Debug \
           -destination "platform=macOS" \
+          -derivedDataPath ~/Library/Developer/Xcode/DerivedData \
+          -parallelizeTargets \
+          -quiet \
+          -skipPackagePluginValidation \
           ONLY_ACTIVE_ARCH=NO \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO
-
+          CODE_SIGNING_ALLOWED=NO \
+          | xcpretty --color --simple
+    
     - name: Run Tests
       run: |
         xcodebuild test \
@@ -79,7 +117,78 @@ jobs:
           -scheme Clipy \
           -configuration Debug \
           -destination "platform=macOS" \
+          -derivedDataPath ~/Library/Developer/Xcode/DerivedData \
+          -enableCodeCoverage YES \
+          -quiet \
+          -testPlan Clipy.xctestplan \
+          ONLY_ACTIVE_ARCH=NO \
+          -resultBundlePath TestResults \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO
+          CODE_SIGNING_ALLOWED=NO \
+          | xcpretty --color --test --report junit
+    
+    - name: Process Test Report
+      if: always()
+      run: |
+        mkdir -p test-results
+        mv build/reports/junit.xml test-results/
+    
+    - name: Upload Test Report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-report
+        path: test-results
+        retention-days: 14
+    
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: TestResults
+        retention-days: 14
+    
+    - name: Generate Coverage Report
+      if: success()
+      run: |
+        # Ensure Coverage.profdata exists
+        if ! find ~/Library/Developer/Xcode/DerivedData -name "Coverage.profdata" | grep -q .; then
+          echo "Error: Coverage.profdata not found"
+          exit 1
+        fi
+        # Ensure Clipy binary exists
+        if ! find ~/Library/Developer/Xcode/DerivedData -name "Clipy" | grep -q .; then
+          echo "Error: Clipy binary not found"
+          exit 1
+        fi
+        xcrun llvm-cov export \
+          -format="lcov" \
+          -instr-profile=$(find ~/Library/Developer/Xcode/DerivedData -name "Coverage.profdata") \
+          $(find ~/Library/Developer/Xcode/DerivedData -name "Clipy") \
+          > coverage.lcov
+        # Verify coverage file was generated
+        if [ ! -s coverage.lcov ]; then
+          echo "Error: coverage.lcov is empty"
+          exit 1
+        fi
+    
+    - name: Upload Coverage Results
+      if: success()
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-coverage
+        path: coverage.lcov
+        retention-days: 14
+    
+    - name: Upload Coverage to Codecov
+      if: success()
+      uses: codecov/codecov-action@v3
+      with:
+        file: coverage.lcov
+        fail_ci_if_error: true
+        verbose: true
+        flags: unittests
+        name: codecov-umbrella
     
