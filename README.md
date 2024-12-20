@@ -6,7 +6,6 @@
 
 ![CI](https://github.com/Clipy/Clipy/workflows/CI/badge.svg)
 [![Release version](https://img.shields.io/github/release/Clipy/Clipy.svg)](https://github.com/Clipy/Clipy/releases/latest)
-[![codecov](https://codecov.io/gh/Clipy/Clipy/branch/develop/graph/badge.svg)](https://codecov.io/gh/Clipy/Clipy)
 [![OpenCollective](https://opencollective.com/clipy/backers/badge.svg)](#backers)
 [![OpenCollective](https://opencollective.com/clipy/sponsors/badge.svg)](#sponsors)
 

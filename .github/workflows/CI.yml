@@ -18,14 +18,9 @@ jobs:
     
     env:
       MD_APPLE_SDK_ROOT: /Applications/Xcode_${{ matrix.xcode }}.app
-      DISABLE_COVERAGE: '0'
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       XCODE_XCCONFIG_FILE: ${{ github.workspace }}/.github/workflows/config/universal.xcconfig
       LANG: en_US.UTF-8
       LANGUAGE: en_US.UTF-8
-      LC_ALL: en_US.UTF-8
-      BUNDLE_JOBS: 4
-      BUNDLE_RETRY: 3
       DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
     
     steps:
@@ -132,7 +127,6 @@ jobs:
           -configuration Debug \
           -destination "platform=macOS" \
           -derivedDataPath ~/Library/Developer/Xcode/DerivedData \
-          -enableCodeCoverage YES \
           -quiet \
           -testPlan Clipy.xctestplan \
           ONLY_ACTIVE_ARCH=NO \
@@ -159,30 +153,6 @@ jobs:
           build/reports/junit.xml
         retention-days: 14
     
-    - name: Generate Coverage Report
-      if: success()
-      run: |
-        # Ensure Coverage.profdata exists
-        if ! find ~/Library/Developer/Xcode/DerivedData -name "Coverage.profdata" | grep -q .; then
-          echo "Error: Coverage.profdata not found"
-          exit 1
-        fi
-        # Ensure Clipy binary exists
-        if ! find ~/Library/Developer/Xcode/DerivedData -name "Clipy" | grep -q .; then
-          echo "Error: Clipy binary not found"
-          exit 1
-        fi
-        xcrun llvm-cov export \
-          -format="lcov" \
-          -instr-profile=$(find ~/Library/Developer/Xcode/DerivedData -name "Coverage.profdata") \
-          $(find ~/Library/Developer/Xcode/DerivedData -name "Clipy") \
-          > coverage.lcov
-        # Verify coverage file was generated
-        if [ ! -s coverage.lcov ]; then
-          echo "Error: coverage.lcov is empty"
-          exit 1
-        fi
-    
     - name: Upload Build and Test Logs
       if: always()  # Upload logs regardless of outcome
       uses: actions/upload-artifact@v3
@@ -195,18 +165,7 @@ jobs:
           **/*.crash
           **/*.ips
           **/*.xcresult
-          coverage.lcov
         retention-days: 14
-    
-    - name: Upload Coverage to Codecov
-      if: success()
-      uses: codecov/codecov-action@v3
-      with:
-        file: coverage.lcov
-        fail_ci_if_error: true
-        verbose: true
-        flags: unittests
-        name: codecov-umbrella
     
     - name: Clean Up
       if: always()
