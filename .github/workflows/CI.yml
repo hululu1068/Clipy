@@ -2,45 +2,47 @@ name: CI
 
 on: [push, pull_request]
 
-env:
-  DEVELOPER_DIR: /Applications/Xcode_12.2.app/Contents/Developer
-
 jobs:
-  test:
-    runs-on: macos-10.15
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-13, macos-14]
+        xcode: ['14.3.1', '15.2']
+        arch: [x86_64, arm64]
+    
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Setup ruby
-      uses: actions/setup-ruby@v1
+    - uses: actions/checkout@v4
+    
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
       with:
-        ruby-version: '2.6'
-  
-    - name: Cache RubyGems
-      uses: actions/cache@v2
-      with:
-        path: vendor/bundle
-        key: ${{ runner.os }}-gem-${{ hashFiles('**/Gemfile.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-gem-
-      
-    - name: Cache CocoaPods
-      uses: actions/cache@v2
-      with:
-        path: Pods
-        key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-pods-
-
-    - name: Bundle install
+        xcode-version: ${{ matrix.xcode }}
+    
+    - name: Install Dependencies
       run: |
-        gem install bundler
-        bundle config path vendor/bundle
-        bundle install --jobs 4 --retry 3
+        bundle install --path=vendor/bundle
+        bundle exec pod install
+        
+    - name: Build
+      run: |
+        xcodebuild clean build \
+          -workspace Clipy.xcworkspace \
+          -scheme Clipy \
+          -configuration Debug \
+          -arch ${{ matrix.arch }} \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO
 
-    - name: Pod install
-      run: bundle exec pod install
-
-    - name: Run fastlane
-      run: bundle exec fastlane test
+    - name: Run Tests
+      run: |
+        xcodebuild test \
+          -workspace Clipy.xcworkspace \
+          -scheme Clipy \
+          -configuration Debug \
+          -arch ${{ matrix.arch }} \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO
     
