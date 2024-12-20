@@ -1,5 +1,9 @@
 default_platform :mac
 
+before_all do
+  ensure_ruby_version!
+end
+
 platform :mac do
 
   ############################ PRE ############################

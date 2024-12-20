@@ -11,8 +11,22 @@ jobs:
         xcode: ['15.2.0', '15.1.0']
         arch: [x86_64, arm64]
     
+    env:
+      MD_APPLE_SDK_ROOT: /Applications/Xcode_${{ matrix.xcode }}.app
+      LANG: en_US.UTF-8
+      LANGUAGE: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
+      BUNDLE_JOBS: 4
+      BUNDLE_RETRY: 3
+    
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Setup Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '2.7'
+        bundler-cache: true
     
     - name: Cache Bundler
       uses: actions/cache@v3

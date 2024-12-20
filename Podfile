@@ -1,6 +1,9 @@
 platform :osx, '10.13'
 use_frameworks!
 
+# Ruby version requirement
+raise "Requires Ruby 2.7 or higher" if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("2.7.0")
+
 target 'Clipy' do
 
   # Application
