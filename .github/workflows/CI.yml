@@ -25,7 +25,7 @@ jobs:
     - name: Setup Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: '2.7'
+        ruby-version: '3.1'
         bundler-cache: true
     
     - name: Cache Bundler
@@ -51,7 +51,10 @@ jobs:
     
     - name: Install Dependencies
       run: |
-        gem install cocoapods -v 1.12.1
+        gem install bundler
+        gem install cocoapods
+        bundle update --bundler
+        bundle config build.nokogiri --use-system-libraries
         pod repo update
         bundle install --path=vendor/bundle
         pod install
