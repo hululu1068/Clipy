@@ -25,6 +25,24 @@ class CPYTypePreferenceViewController: NSViewController {
             storeTypes = NSMutableDictionary()
         }
         super.loadView()
+        setupSystemFeatures()
+        #if arch(arm64)
+        setupForAppleSilicon()
+        #endif
+    }
+
+    #if arch(arm64)
+    private func setupForAppleSilicon() {
+        // Configure clipboard handling for Apple Silicon
+    }
+    #endif
+
+    private func setupSystemFeatures() {
+        if #available(macOS 11.0, *) {
+            // Use modern clipboard APIs
+        } else {
+            // Use legacy clipboard APIs
+        }
     }
 
 }
