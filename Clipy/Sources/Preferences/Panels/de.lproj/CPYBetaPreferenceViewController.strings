@@ -55,3 +55,9 @@
 
 /* Class = "NSMenuItem"; title = "Control"; ObjectID = "z3A-El-En9"; */
 "z3A-El-En9.title" = "Control";
+
+/* Class = "NSTextFieldCell"; title = "System Requirements"; ObjectID = "sys-req"; */
+"sys-req.title" = "Systemanforderungen";
+
+/* Class = "NSTextFieldCell"; title = "Apple Silicon Support"; ObjectID = "silicon-support"; */
+"silicon-support.title" = "Apple Silicon Unterstützung";

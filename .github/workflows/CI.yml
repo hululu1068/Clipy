@@ -8,11 +8,27 @@ jobs:
     strategy:
       matrix:
         os: [macos-13, macos-14]
-        xcode: ['14.3.1', '15.2']
+        xcode: ['15.2.0', '15.4.0']
         arch: [x86_64, arm64]
     
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Cache Bundler
+      uses: actions/cache@v3
+      with:
+        path: vendor/bundle
+        key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-gems-
+    
+    - name: Cache Pods
+      uses: actions/cache@v3
+      with:
+        path: Pods
+        key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pods-
     
     - name: Setup Xcode
       uses: maxim-lobanov/setup-xcode@v1

@@ -4,3 +4,9 @@
 
 /* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "XXp-Rw-8h6"; */
 "XXp-Rw-8h6.title" = "";
+
+/* Class = "NSTextFieldCell"; title = "System Requirements"; ObjectID = "sys-req"; */
+"sys-req.title" = "Requisiti di Sistema";
+
+/* Class = "NSTextFieldCell"; title = "Apple Silicon Support"; ObjectID = "silicon-support"; */
+"silicon-support.title" = "Supporto Apple Silicon";

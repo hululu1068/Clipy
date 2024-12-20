@@ -4,10 +4,10 @@ use_frameworks!
 target 'Clipy' do
 
   # Application
-  pod 'PINCache'
+  pod 'PINCache', '~> 3.0'
   pod 'Sauce'
-  pod 'Sparkle'
-  pod 'RealmSwift'
+  pod 'Sparkle', '~> 2.0'
+  pod 'RealmSwift', '~> 10.0'
   pod 'RxCocoa'
   pod 'RxSwift'
   pod 'LoginServiceKit', :git => 'https://github.com/Clipy/LoginServiceKit.git'
